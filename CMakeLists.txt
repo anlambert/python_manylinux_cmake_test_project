@@ -45,7 +45,6 @@ IF(PYTHONINTERP_FOUND)
 
   GET_FILENAME_COMPONENT(PYTHON_HOME_PATH ${PYTHON_EXECUTABLE} PATH)
 
-
   # Ensure that correct Python include path and library are selected by CMake on Linux (in case of non standard installation)
   SET(CMAKE_INCLUDE_PATH ${PYTHON_HOME_PATH}/../include ${CMAKE_INCLUDE_PATH})
   SET(CMAKE_LIBRARY_PATH ${PYTHON_HOME_PATH}/../lib ${CMAKE_LIBRARY_PATH})
@@ -54,9 +53,9 @@ IF(PYTHONINTERP_FOUND)
 
   IF(PYTHONLIBS_FOUND)
 
-    SET(SIP_LIB mysip)
+    SET(SIP_LIB sip_manylinux_tests)
     SET(SIP_VERSION_THIRDPARTY 4.18)
-    # Build sip code generator 
+    # Build sip code generator
     TRY_COMPILE(SIP_OK ${CMAKE_CURRENT_BINARY_DIR}/sip-${SIP_VERSION_THIRDPARTY}/sipgen ${CMAKE_CURRENT_SOURCE_DIR}/sip-${SIP_VERSION_THIRDPARTY}/sipgen sip
                 CMAKE_FLAGS -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES} -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
                             -DPYTHON_INCLUDE_DIR=${PYTHON_INCLUDE_DIR} -DPYTHON_INCLUDE_DIR2=${PYTHON_INCLUDE_DIR2}
@@ -69,22 +68,17 @@ IF(PYTHONINTERP_FOUND)
 
       EXECUTE_PROCESS(COMMAND ${PYTHON_HOME_PATH}/pip install --upgrade wheel)
 
-      # When building Python binary wheels on Linux, produced binaries have to be patched
-      # in order for the tulip modules to be successfully imported and loaded on every computer.
-      # The 'auditwheel' tool (see https://github.com/pypa/auditwheel) has been developed
-      # in order to ease that patching task, so install its latest version with pip first.
-      # The tool is only compatible with Python 3.X, so we will use Python 3.5 installed
-      # in the docker image provided by the manylinux project (see https://github.com/pypa/manylinux).
-      EXECUTE_PROCESS(COMMAND /opt/python/cp35-cp35m/bin/pip install --upgrade auditwheel)
-
       ADD_CUSTOM_TARGET(wheel
                         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
-                        COMMAND /opt/python/cp35-cp35m/bin/auditwheel repair -L native -w ./dist ./dist/`ls -t ./dist/ | head -1`
                         WORKING_DIRECTORY ${PYTHON_MODULES_FOLDER})
 
       ADD_SUBDIRECTORY(sip-${SIP_VERSION_THIRDPARTY})
       ADD_SUBDIRECTORY(zliblinkage)
       ADD_SUBDIRECTORY(pnglinkage)
+
+      ADD_CUSTOM_TARGET(copyPackagingFiles ALL ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/setup.cfg ${PYTHON_MODULES_FOLDER}/setup.cfg
+                                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/MANIFEST.in ${PYTHON_MODULES_FOLDER}/MANIFEST.in
+                                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/setup.py ${PYTHON_MODULES_FOLDER}/setup.py)
 
   ENDIF(SIP_OK)
 
