@@ -19,7 +19,7 @@ class BinaryDistribution(Distribution):
         return True
 
 setup(
-    name='manylinux-tests',
+    name='manylinux-cmake-test',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see

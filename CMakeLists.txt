@@ -18,10 +18,10 @@
 # CMake 2.8 is required to build the project
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.3)
 
-FILE(READ /etc/issue LINUX_ISSUE)
-IF(NOT "${LINUX_ISSUE}" MATCHES ".*CentOS release 5\\.11 \\(Final\\).*" OR NOT IS_DIRECTORY /opt/python)
- MESSAGE(FATAL_ERROR "This project must be compiled using the CentOS 5.11 docker image provided by the manylinux project from the Python Packaging Authority.\nSee https://github.com/pypa/manylinux for more details.")
-ENDIF(NOT "${LINUX_ISSUE}" MATCHES ".*CentOS release 5\\.11 \\(Final\\).*" OR NOT IS_DIRECTORY /opt/python)
+# FILE(READ /etc/issue LINUX_ISSUE)
+# IF(NOT "${LINUX_ISSUE}" MATCHES ".*CentOS release 5\\.11 \\(Final\\).*" OR NOT IS_DIRECTORY /opt/python)
+#  MESSAGE(FATAL_ERROR "This project must be compiled using the CentOS 5.11 docker image provided by the manylinux project from the Python Packaging Authority.\nSee https://github.com/pypa/manylinux for more details.")
+# ENDIF(NOT "${LINUX_ISSUE}" MATCHES ".*CentOS release 5\\.11 \\(Final\\).*" OR NOT IS_DIRECTORY /opt/python)
 
 # variable that hold the root modules directory
 SET(PYTHON_MODULES_FOLDER ${CMAKE_BINARY_DIR}/modules)
@@ -86,10 +86,16 @@ IF(PYTHONINTERP_FOUND)
       # Ensure the wheel module is installed
       EXECUTE_PROCESS(COMMAND ${PYTHON_HOME_PATH}/pip install --upgrade wheel)
 
+      # Copy packaging files to the modules root folder
+      ADD_CUSTOM_TARGET(copyPackagingFiles ALL ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/setup.cfg ${PYTHON_MODULES_FOLDER}/setup.cfg
+                                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/MANIFEST.in ${PYTHON_MODULES_FOLDER}/MANIFEST.in
+                                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/setup.py ${PYTHON_MODULES_FOLDER}/setup.py)
+
       # Add a make target for generating the wheel
       ADD_CUSTOM_TARGET(wheel
                         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
-                        WORKING_DIRECTORY ${PYTHON_MODULES_FOLDER})
+                        WORKING_DIRECTORY ${PYTHON_MODULES_FOLDER}
+                        DEPENDS copyPackagingFiles)
 
       # Compile the sip module required by the extension modules
       ADD_SUBDIRECTORY(sip-${SIP_VERSION_THIRDPARTY})
@@ -97,10 +103,7 @@ IF(PYTHONINTERP_FOUND)
       ADD_SUBDIRECTORY(zliblinkage)
       ADD_SUBDIRECTORY(pnglinkage)
 
-      # Copy packaging files to the modules root folder
-      ADD_CUSTOM_TARGET(copyPackagingFiles ALL ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/setup.cfg ${PYTHON_MODULES_FOLDER}/setup.cfg
-                                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/MANIFEST.in ${PYTHON_MODULES_FOLDER}/MANIFEST.in
-                                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/setup.py ${PYTHON_MODULES_FOLDER}/setup.py)
+
 
   ENDIF(SIP_OK)
 

@@ -20,6 +20,7 @@ ADD_CUSTOM_COMMAND(OUTPUT ${PYTHON_BINDINGS_SRC}
 
 # Copy __init__.py for the zliblinkage module to its root folder
 ADD_CUSTOM_TARGET(copyZlibLinkageInitPy ALL ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py ${PYTHON_MODULES_FOLDER}/zliblinkage/__init__.py)
+ADD_DEPENDENCIES(wheel copyZlibLinkageInitPy)
 
 # Force to use SIP and headers located in the project
 # instead of those installed in the system
@@ -43,3 +44,5 @@ SET_TARGET_PROPERTIES(pyzliblinkage PROPERTIES OUTPUT_NAME zliblinkage PREFIX "_
 
 # Link the extension module to zliblinkage
 TARGET_LINK_LIBRARIES(pyzliblinkage zliblinkage)
+
+ADD_DEPENDENCIES(wheel pyzliblinkage)

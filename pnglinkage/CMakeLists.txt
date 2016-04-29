@@ -19,9 +19,9 @@ ADD_CUSTOM_COMMAND(OUTPUT ${PYTHON_BINDINGS_SRC}
                    COMMENT "Generating Python Bindings for pnglinkage"
                    DEPENDS pnglinkage.sip VERBATIM)
 
-                   # Copy __init__.py for the pnglinkage module to its root folder
-                   ADD_CUSTOM_TARGET(copyPngLinkageInitPy ALL ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py ${PYTHON_MODULES_FOLDER}/pnglinkage/__init__.py)
-
+# Copy __init__.py for the pnglinkage module to its root folder
+ADD_CUSTOM_TARGET(copyPngLinkageInitPy ALL ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py ${PYTHON_MODULES_FOLDER}/pnglinkage/__init__.py)
+ADD_DEPENDENCIES(wheel copyPngLinkageInitPy)
 # Force to use SIP and headers located in thirdparty
 # instead of those installed in the system
 INCLUDE_DIRECTORIES(BEFORE ${SIP_INCLUDE_DIR})
@@ -44,3 +44,5 @@ SET_TARGET_PROPERTIES(pypnglinkage PROPERTIES OUTPUT_NAME pnglinkage PREFIX "_")
 
 # Link the extension module to libpnglinkage
 TARGET_LINK_LIBRARIES(pypnglinkage pnglinkage)
+
+ADD_DEPENDENCIES(wheel pypnglinkage)
