@@ -8,6 +8,9 @@ from os import path
 import platform
 import subprocess
 
+# Trick setuptools in order to get correct binary wheel tag name
+# We are forced to do this as we don't compile the extension modules through setuptools
+# but rather with CMake.
 class BinaryDistribution(Distribution):
     def is_pure(self):
         return False
